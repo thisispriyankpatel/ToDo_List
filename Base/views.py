@@ -6,14 +6,16 @@ from django.views.generic.list  import ListView
 from django.views.generic.detail  import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.urls import reverse_lazy
-
+from openpyxl import Workbook
 from django.contrib.auth.views import LoginView
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-
+from django.db import transaction
+from django.views import View
 from .models import Task
+from .forms import PositionForm
 
 
 class CustomLoginView(LoginView):
@@ -59,6 +61,34 @@ class TaskList(LoginRequiredMixin, ListView):
 
 
         return context
+    
+class  Downlaod_Task_List(LoginRequiredMixin, ListView):
+    model = Task 
+    context_object_name = 'tasks', 'task'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter the queryset based on the currently logged-in user
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
+
+    def get(self,request,*args, **kwargs):
+        queryset = self.get_queryset()
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.cell(row=1, column=1, value='Title')
+        sheet.cell(row=1, column=2, value='Description')
+
+        for index, task in enumerate(queryset, start=2):
+            sheet.cell(row=index, column=1, value=task.title)
+            sheet.cell(row=index, column=2, value=task.description)
+            
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=mydata.xlsx'
+        workbook.save(response)
+
+        return response
 
 
 
@@ -95,3 +125,15 @@ class DeleteView(LoginRequiredMixin, DeleteView):
      context_object_name = 'task'
      success_url = reverse_lazy('tasks')
 
+class TaskReorder(View):
+    def post(self, request):
+        form = PositionForm(request.POST)
+
+        if form.is_valid():
+            positionList = form.cleaned_data["position"].split(',')
+
+            with transaction.atomic():
+                self.request.user.set_task_order(positionList)
+
+        return redirect(reverse_lazy('tasks'))
+    
