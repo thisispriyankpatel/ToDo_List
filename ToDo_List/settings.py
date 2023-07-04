@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-=p0(vlv_c8vbzf@=lga_881z*4w@!w3hh^silt%i^!n1p2i%=e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['https://maketodolist-1ca7b4bbe322.herokuapp.com/']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -118,6 +118,7 @@ LOGIN_URL = 'login'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+
 
 STATIC_URL = 'static/'
 

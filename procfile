@@ -1,3 +1,2 @@
-web: gunicorn ToDo_List.wsgi:app
-web: python manage.py runserver 0.0.0.0:$PORT
+web: gunicorn ToDo_List.wsgi:app python manage.py runserver 0.0.0.0:$PORT
 
